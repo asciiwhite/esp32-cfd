@@ -22,13 +22,6 @@ uint32_t warpSpeedNextToggleInMillis = 2000;
 const uint32_t WallHeightInPixels = 30;
 
 float t = 0.f;
-enum class VizType {
-    DENSITY,
-    DENSITY_DEBUG,
-    VELOCITY,
-    COUNT
-} vizType = VizType::DENSITY;
-
 
 void setup() {
   tft.init();
@@ -42,7 +35,6 @@ void setup() {
   const uint32_t width = std::ceil(tft.width() / FLUID_SCALE);
   const uint32_t height = std::ceil((tft.height() - InfoBarHeight) / FLUID_SCALE);
   fluid.init(width, height);
-
   fluidviz.init(fluid);
  // stars.init(1024);
 }
@@ -78,24 +70,9 @@ void loop() {
 
   const long processingTime = millis() - start;
 
-  uint16_t x;
-  uint16_t y;
-  if (tft.getTouch(&x, &y))
-  {
-      vizType = static_cast<VizType>(static_cast<int>(vizType) + 1);
-      if (vizType == VizType::COUNT)
-          vizType = VizType::DENSITY;
-      tft.fillRect(0, InfoBarHeight, tft.width(), tft.height() - InfoBarHeight, TFT_BLACK);
-  }
-
   tft.setCursor(0, InfoBarHeight);
-
-  switch (vizType)
-  {
-  case VizType::DENSITY:        fluidviz.renderDensity();      break;
-  case VizType::DENSITY_DEBUG:  fluidviz.renderDensityDebug(); break;
-  case VizType::VELOCITY:       fluidviz.renderVelocity();     break;
-  }
+  fluidviz.handleTouch();
+  fluidviz.draw();
 
   fluid.fadeDensity(1.5f);
 

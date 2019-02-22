@@ -15,6 +15,42 @@ void FluidVisualizer::init(Fluid& _fluid)
     width = _fluid.width - 2; // remove boundaries
     height = _fluid.height - 2;
     tileCache.resize(width * height, 0);
+//    tileCacheSecond.resize(tileCache.size);
+}
+
+void FluidVisualizer::handleTouch()
+{
+    uint16_t x;
+    uint16_t y;
+    if (tft.getTouch(&x, &y))
+    {
+        if (x < (tft.height() / 2))
+        {
+            vizType = static_cast<VisualizerType>(static_cast<int>(vizType) + 1);
+            if (vizType == VisualizerType::COUNT)
+                vizType = VisualizerType::DENSITY;
+        }
+        else
+        {
+            if (vizType == VisualizerType::DENSITY)
+                vizType = VisualizerType::VELOCITY;
+            else 
+                vizType = static_cast<VisualizerType>(static_cast<int>(vizType) - 1);
+
+        }
+        delay(100);
+        tft.fillRect(tft.cursor_x, tft.cursor_y, tft.width() - tft.cursor_x, tft.height() - tft.cursor_y, TFT_BLACK);
+    }
+}
+
+void FluidVisualizer::draw()
+{
+    switch (vizType)
+    {
+    case VisualizerType::DENSITY:       renderDensity();      break;
+    case VisualizerType::DENSITY_DEBUG: renderDensityDebug(); break;
+    default:                            renderVelocity();
+    }
 }
 
 bool FluidVisualizer::updateTileCache(uint32_t i, uint32_t j, const uint8_t newColor) const
@@ -69,8 +105,8 @@ void FluidVisualizer::renderVelocity() const {
         for (int i = 0; i < width; i++) {
             const int32_t x = i * scale + tft.cursor_x + (scale >> 1);
             const int32_t y = j * scale + tft.cursor_y + (scale >> 1);
-            const int32_t vx = static_cast<int32_t>(fluid->velocityX[IX(i, j)] * scale * 5.f);
-            const int32_t vy = static_cast<int32_t>(fluid->velocityY[IX(i, j)] * scale * 5.f);
+            const int32_t vx = static_cast<int32_t>(fluid->velocityX[IX(i, j)] * scale * 20.f);
+            const int32_t vy = static_cast<int32_t>(fluid->velocityY[IX(i, j)] * scale * 20.f);
             if (abs(vx) >= 1 || abs(vy) >= 1)
                 tft.drawLine(x, y, x + vx, y + vy, TFT_WHITE);
         }
